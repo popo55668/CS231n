@@ -106,7 +106,7 @@ class TwoLayerNet(object):
         sum_logits = np.sum(logits, axis=1, keepdims=True)
         logits = logits / sum_logits
 
-        delta = 1e-15
+        delta = 1e-30
         loss = np.sum(-y_one_hot * np.log(logits + delta)) / N
         loss += reg * np.sum(W1 * W1)
         loss += reg * np.sum(W2 * W2)
