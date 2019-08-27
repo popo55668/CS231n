@@ -32,13 +32,40 @@ def softmax_loss_naive(W, X, y, reg):
     # regularization!                                                           #
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+    num_classes = W.shape[1]
+    batch_size = X.shape[0]
 
-    pass
+    logits = X.dot(W)
+
+    constant = np.max(logits)
+    logits = np.exp(logits - constant)
+    sum_logits = np.sum(logits, axis=1)
+
+    delta = 1e-15
+    for i in range(batch_size):
+        logits[i] = logits[i] / sum_logits[i]
+        # Note the minus sign.
+        loss -= np.log(logits[i][y[i]] + delta)
+
+    # Note the average over batch dimension.
+    loss /= batch_size
+   
+    # gradient of softmax = y_pred - y_label
+    d_logits = np.copy(logits)
+    for i in range(batch_size):
+        y_one_hot = np.zeros(num_classes)
+        y_one_hot[y[i]] = 1
+        d_logits[i] = (logits[i] - y_one_hot) / batch_size
+
+    dW = X.T.dot(d_logits)
+
+    # Note np.sum
+    loss += reg * np.sum(W * W)
+    dW += reg * 2 * W
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
     return loss, dW
-
 
 def softmax_loss_vectorized(W, X, y, reg):
     """
@@ -57,8 +84,27 @@ def softmax_loss_vectorized(W, X, y, reg):
     # regularization!                                                           #
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+    num_classes = W.shape[1]
+    batch_size = X.shape[0]
 
-    pass
+    logits = X.dot(W)
+    c = np.max(logits)
+    logits = np.exp(logits - c)
+    sum_logits = np.sum(logits, axis=1, keepdims=True)
+
+    logits = logits / sum_logits
+    
+    y_one_hot = np.zeros_like(logits)
+    y_one_hot[np.arange(batch_size), y] = 1
+
+    delta = 1e-15
+    loss = np.sum(-np.log(logits + delta) * y_one_hot) / batch_size
+
+    d_logits = (logits - y_one_hot) / batch_size
+    dW = X.T.dot(d_logits)
+
+    loss += reg * np.sum(W * W)
+    dW += reg * 2 * W
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
