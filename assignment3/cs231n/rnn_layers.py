@@ -157,20 +157,27 @@ def rnn_backward(dh, cache):
 
     N, T, H = dh.shape
 
-    '''
-    dx = []
-    dnext_h = dh[:, -1, :]
+    dnext_h = np.zeros((N, H))
     for i in reversed(range(T)):
-        print(i)
+        dnext_h += dh[:, i, :]
         cache_i = cache[i]
         dx_i, dprev_h_i, dWx_i, dWh_i, db_i = rnn_step_backward(dnext_h, cache_i)
+        if dx is None:
+            _, D = dx_i.shape
+            dx = np.zeros((N, T, D))
+            dh0 = np.zeros((N, H))
+            dWx = np.zeros((D, H))
+            dWh = np.zeros((H, H))
+            db = np.zeros(H)
+
+        dx[:, i, :] = dx_i
+        dWx += dWx_i
+        dWh += dWh_i
+        db += db_i
+
         dnext_h = dprev_h_i
-        dx.append(dx)
 
-    dx = np.array(dx)
-    dh0 = dprev_h_i
-    '''
-
+    dh0 = dnext_h
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ##############################################################################
     #                               END OF YOUR CODE                             #
@@ -200,8 +207,8 @@ def word_embedding_forward(x, W):
     # HINT: This can be done in one line using NumPy's array indexing.           #
     ##############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-    pass
+    out = W[x]
+    cache = (x, W)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ##############################################################################
@@ -233,9 +240,10 @@ def word_embedding_backward(dout, cache):
     # HINT: Look up the function np.add.at                                       #
     ##############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+    x, W = cache
+    dW = np.zeros_like(W)
 
-    pass
-
+    np.add.at(dW, x, dout)
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ##############################################################################
     #                               END OF YOUR CODE                             #
